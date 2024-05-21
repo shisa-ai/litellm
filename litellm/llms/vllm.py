@@ -3,6 +3,7 @@ import json
 from enum import Enum
 import requests  # type: ignore
 import time, httpx  # type: ignore
+import torch
 from typing import Callable, Any
 from litellm.utils import ModelResponse, Usage
 from .prompt_templates.factory import prompt_factory, custom_prompt
@@ -28,7 +29,8 @@ def validate_environment(model: str):
         from vllm import LLM, SamplingParams  # type: ignore
 
         if llm is None:
-            llm = LLM(model=model)
+            gpu_count = torch.cuda.device_count()
+            llm = LLM(model=model, tensor_parallel_size=gpu_count)
         return llm, SamplingParams
     except Exception as e:
         raise VLLMError(status_code=0, message=str(e))
